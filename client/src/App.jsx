@@ -4,7 +4,7 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [inputMethod, setInputMethod] = useState('paste'); // 'paste' or 'upload'
+  const [inputMethod, setInputMethod] = useState('paste');
   const [inputText, setInputText] = useState('');
   const [files, setFiles] = useState([]);
   const [redactedText, setRedactedText] = useState('');
@@ -15,7 +15,15 @@ function App() {
   const [selectedEntities, setSelectedEntities] = useState({
     PER: true, ORG: true, LOC: true, MISC: true
   });
+  const [showAbout, setShowAbout] = useState(false);
   const fileInputRef = useRef(null);
+
+  const entityTypes = [
+    { id: 'PER', name: 'Persons', description: 'Names of people' },
+    { id: 'ORG', name: 'Organizations', description: 'Companies, institutions' },
+    { id: 'LOC', name: 'Locations', description: 'Places, addresses' },
+    { id: 'MISC', name: 'Miscellaneous', description: 'Other sensitive information' }
+  ];
 
   const handleFileDrop = (e) => {
     e.preventDefault();
@@ -34,7 +42,7 @@ function App() {
     if (selectedFiles.length > 0) {
       addFilesToQueue(selectedFiles);
     }
-    e.target.value = null; // Reset input
+    e.target.value = null;
   };
 
   const addFilesToQueue = (newFiles) => {
@@ -68,7 +76,6 @@ function App() {
     
     try {
       if (inputMethod === 'paste') {
-        // Process pasted text
         const response = await axios.post('http://localhost:5000/api/redact', {
           text: inputText,
           customPatterns: customPatterns.split(',').map(p => p.trim()).filter(p => p),
@@ -78,7 +85,6 @@ function App() {
         setRedactedText(response.data.redactedText);
         setStats(response.data.stats);
       } else {
-        // Process first file in queue
         const file = files[0];
         const reader = new FileReader();
         
@@ -93,7 +99,6 @@ function App() {
           setRedactedText(response.data.redactedText);
           setStats(response.data.stats);
           
-          // Update file status
           const updatedFiles = files.map(f => 
             f.id === file.id ? {...f, status: 'completed', result: response.data.redactedText} : f
           );
@@ -155,7 +160,6 @@ function App() {
   const renderRedactedText = (text) => {
     if (!text) return null;
     
-    // Split text while preserving entity markers
     const parts = text.split(/(\[[A-Z]+\])/g);
     
     return parts.map((part, index) => {
@@ -173,7 +177,17 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>Secure Data Redactor</h1>
+        <div className="header-content">
+          <h1>Secure Data Redactor</h1>
+          <div className="header-actions">
+            <button 
+              className="about-btn"
+              onClick={() => setShowAbout(true)}
+            >
+              About
+            </button>
+          </div>
+        </div>
         <p className="subtitle">Protect sensitive information with AI-powered redaction</p>
       </header>
 
@@ -280,42 +294,17 @@ function App() {
           <div className="entity-selection">
             <h3>Redaction Targets:</h3>
             <div className="entity-toggles">
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedEntities.PER}
-                  onChange={() => handleEntityToggle('PER')}
-                />
-                <span className="toggle-slider"></span>
-                Persons
-              </label>
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedEntities.ORG}
-                  onChange={() => handleEntityToggle('ORG')}
-                />
-                <span className="toggle-slider"></span>
-                Organizations
-              </label>
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedEntities.LOC}
-                  onChange={() => handleEntityToggle('LOC')}
-                />
-                <span className="toggle-slider"></span>
-                Locations
-              </label>
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedEntities.MISC}
-                  onChange={() => handleEntityToggle('MISC')}
-                />
-                <span className="toggle-slider"></span>
-                Miscellaneous
-              </label>
+              {entityTypes.map(entity => (
+                <label key={entity.id} className="toggle">
+                  <input
+                    type="checkbox"
+                    checked={selectedEntities[entity.id]}
+                    onChange={() => handleEntityToggle(entity.id)}
+                  />
+                  <span className="toggle-slider"></span>
+                  {entity.name}
+                </label>
+              ))}
             </div>
           </div>
 
@@ -391,12 +380,64 @@ function App() {
               </div>
             </div>
           )}
+
+          <div className="entity-legend">
+            <h3>Entity Legend</h3>
+            <ul>
+              {entityTypes.map(entity => (
+                <li key={entity.id}>
+                  <strong>{entity.name} ({entity.id}):</strong> {entity.description}
+                </li>
+              ))}
+              <li><strong>CUSTOM:</strong> Matches from custom patterns</li>
+            </ul>
+          </div>
         </div>
       </div>
       
       <footer>
         <p>Secure Data Redaction System | Built with React & Node.js</p>
       </footer>
+
+      {showAbout && (
+        <div className="about-modal">
+          <div className="about-content">
+            <button className="close-btn" onClick={() => setShowAbout(false)}>
+              &times;
+            </button>
+            <h2>About Secure Data Redactor</h2>
+            <div className="about-text">
+              <p>
+                The Secure Data Redactor is an AI-powered tool designed to protect sensitive information in text content. 
+                Using advanced natural language processing, it identifies and redacts various types of personal and confidential data.
+              </p>
+              
+              <h3>How It Works</h3>
+              <ol>
+                <li>Paste your text or upload text files containing sensitive information</li>
+                <li>The system processes the content using AI models to detect entities</li>
+                <li>Identified entities are replaced with placeholders like [PER], [LOC], etc.</li>
+                <li>The redacted content is displayed with sensitive information protected</li>
+              </ol>
+              
+              <h3>Key Features</h3>
+              <ul>
+                <li>Detects persons, organizations, locations, and other sensitive entities</li>
+                <li>Supports custom patterns for specialized redaction needs</li>
+                <li>Preserves original text structure while protecting sensitive data</li>
+                <li>Provides statistics about the redaction process</li>
+                <li>Download redacted content for secure sharing</li>
+              </ul>
+              
+              <h3>Privacy Focused</h3>
+              <p>
+                Your data privacy is our top priority. All processing happens locally in your browser or on our secure servers. 
+                No sensitive information is stored or transmitted without your explicit consent.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

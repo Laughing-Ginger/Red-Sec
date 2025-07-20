@@ -20,14 +20,14 @@ app.post('/api/redact', async (req, res) => {
   }
 
   try {
-    // Initialize statistics
     const stats = {
       totalRedactions: 0,
       entityCounts: {
         PER: 0,
         ORG: 0,
         LOC: 0,
-        MISC: 0
+        MISC: 0,
+        CUSTOM: 0
       }
     };
     
@@ -38,8 +38,9 @@ app.post('/api/redact', async (req, res) => {
       customPatterns.forEach(pattern => {
         const regex = new RegExp(pattern, 'gi');
         processedText = processedText.replace(regex, match => {
+          stats.entityCounts.CUSTOM++;
           stats.totalRedactions++;
-          return '[REDACTED]';
+          return '[CUSTOM]';
         });
       });
     }
@@ -56,13 +57,11 @@ app.post('/api/redact', async (req, res) => {
 
     const nerResults = await response.json();
     
-    // Check for valid response
     if (!Array.isArray(nerResults)) {
       console.error('Hugging Face API Error:', nerResults);
       return res.status(500).json({ error: 'Failed to process text with AI' });
     }
     
-    // Process entities in reverse order to maintain correct indices
     const redactions = nerResults
       .filter(entity => entities.includes(entity.entity_group))
       .sort((a, b) => b.start - a.start);
@@ -78,7 +77,6 @@ app.post('/api/redact', async (req, res) => {
         processedText.substring(entity.end);
     });
     
-    // Calculate processing time
     stats.timeTaken = Date.now() - startTime;
     
     res.json({ 

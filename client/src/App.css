@@ -11,8 +11,7 @@
   --border: #333;
   --success: #66bb6a;
   --error: #ef5350;
-  --redacted-bg: #9575cd; /* Faded purple for redacted text */
-  --redacted-text: #4527a0; /* Dark purple for text */
+  --redacted: #9e9e9e; /* Grey for redacted text */
 }
 
 * {
@@ -48,6 +47,36 @@ header {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.header-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.about-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.about-btn:hover {
+  background: rgba(179, 157, 219, 0.1);
 }
 
 h1 {
@@ -395,15 +424,12 @@ button.secondary:hover {
   white-space: pre-wrap;
   font-family: inherit;
   line-height: 1.6;
+  color: var(--text);
 }
 
 .redacted-entity {
-  background-color: var(--redacted-bg);
-  color: var(--redacted-text);
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
-  font-weight: bold;
-  margin: 0 1px;
+  color: var(--redacted);
+  font-weight: normal;
 }
 
 .placeholder {
@@ -440,6 +466,7 @@ button.secondary:hover {
   border-radius: 8px;
   padding: 1.5rem;
   border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
 }
 
 .stats h3 {
@@ -502,6 +529,31 @@ button.secondary:hover {
   font-weight: 700;
 }
 
+.entity-legend {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.entity-legend h3 {
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.entity-legend ul {
+  list-style: none;
+}
+
+.entity-legend li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.entity-legend li:last-child {
+  border-bottom: none;
+}
+
 .error {
   background: rgba(239, 83, 80, 0.2);
   color: var(--error);
@@ -518,6 +570,60 @@ footer {
   color: var(--text-secondary);
   font-size: 0.9rem;
   border-top: 1px solid var(--border);
+}
+
+.about-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.about-content {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid var(--primary);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.about-text {
+  line-height: 1.8;
+}
+
+.about-text h3 {
+  margin-top: 1.5rem;
+  color: var(--accent);
+}
+
+.about-text ol, .about-text ul {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.about-text li {
+  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 900px) {
@@ -537,5 +643,15 @@ footer {
   
   button {
     width: 100%;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .header-actions {
+    position: static;
+    margin-top: 1rem;
   }
 }
