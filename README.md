@@ -27,16 +27,13 @@ The project is a full-stack MERN application with a separate frontend and backen
 ### Frontend
 
 - **React:** A JavaScript library for building user interfaces.
-- **React Hooks & Context API:** For state management and logic.
-- **Axios:** For making HTTP requests to the backend API.
-- **CSS:** Custom styling for a modern, responsive design.
+- **Vite:** A frontend tooling for leaner development experience.
+
 
 ### Backend
 
-- **Node.js:** A JavaScript runtime for the server.
 - **Express:** A web application framework for Node.js.
 - **MongoDB:** A NoSQL database used to store redaction history.
-- **Mongoose:** An ODM library for MongoDB to model application data.
 - **Hugging Face Inference API:** Utilizes the `dslim/bert-base-NER` model for Named Entity Recognition.
 
 ---
@@ -54,10 +51,6 @@ To get a local copy up and running, follow these simple steps.
 ### Installation & Setup
 
 1.  **Clone the repository:**
-    ```sh
-    git clone [https://github.com/Laughing-Ginger/Red-Sec.git](https://github.com/Laughing-Ginger/Red-Sec.git)
-    cd Red-Sec
-    ```
 
 2.  **Setup the Backend:**
     - Navigate to the `backend` directory:
@@ -68,17 +61,11 @@ To get a local copy up and running, follow these simple steps.
       ```sh
       npm install
       ```
-    - Create a `.env` file in the `backend` root and add your environment variables:
-      ```
-      MONGODB_URI="your_mongodb_connection_string"
-      HF_API_KEY="your_hugging_face_api_key"
-      PORT=5000
-      ```
     - Start the backend server:
       ```sh
       node server.js
       ```
-    The server should now be running on `http://localhost:5000`.
+    The server should now be running on `localhost`.
 
 3.  **Setup the Frontend:**
     - Open a new terminal and navigate to the `frontend` directory:
@@ -91,9 +78,9 @@ To get a local copy up and running, follow these simple steps.
       ```
     - Start the React development server:
       ```sh
-      npm start
+      npm run dev
       ```
-    The application should now be open and running in your browser at `http://localhost:3000`.
+    The application should now be open and running in your browser at `localhost`.
 
 ---
 
