@@ -50,7 +50,7 @@ To get a local copy up and running, follow these simple steps.
 
 ### Installation & Setup
 
-1.  **Clone the repository:**
+1.  **Clone the repository**
 
 2.  **Setup the Backend:**
     - Navigate to the `backend` directory:
