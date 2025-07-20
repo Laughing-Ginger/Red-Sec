@@ -1,7 +1,7 @@
 // server/index.js
-require('dotenv').config(); // Loads variables from .env file
+require('dotenv').config();
 const express = require('express');
-const cors =require('cors');
+const cors = require('cors');
 const fetch = require('node-fetch');
 
 const app = express();
@@ -12,46 +12,87 @@ const HF_API_URL = 'https://api-inference.huggingface.co/models/dslim/bert-base-
 const HF_API_KEY = process.env.HF_API_KEY;
 
 app.post('/api/redact', async (req, res) => {
-  const { text } = req.body;
+  const { text, customPatterns = [], entities = ['PER', 'ORG', 'LOC', 'MISC'] } = req.body;
+  const startTime = Date.now();
+  
+  if (!text) {
+    return res.status(400).json({ error: 'No text provided' });
+  }
 
   try {
-    // Call the Hugging Face API
+    // Initialize statistics
+    const stats = {
+      totalRedactions: 0,
+      entityCounts: {
+        PER: 0,
+        ORG: 0,
+        LOC: 0,
+        MISC: 0
+      }
+    };
+    
+    let processedText = text;
+    
+    // Process custom patterns first
+    if (customPatterns.length > 0) {
+      customPatterns.forEach(pattern => {
+        const regex = new RegExp(pattern, 'gi');
+        processedText = processedText.replace(regex, match => {
+          stats.totalRedactions++;
+          return '[REDACTED]';
+        });
+      });
+    }
+    
+    // Call Hugging Face API for NER
     const response = await fetch(HF_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${HF_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ inputs: text }),
+      body: JSON.stringify({ inputs: processedText }),
     });
 
-    const entities = await response.json();
+    const nerResults = await response.json();
     
-    // Check for errors from the API
-    if (!Array.isArray(entities)) {
-      console.error('Hugging Face API Error:', entities);
-      return res.status(500).json({ error: 'Failed to process text with AI.' });
+    // Check for valid response
+    if (!Array.isArray(nerResults)) {
+      console.error('Hugging Face API Error:', nerResults);
+      return res.status(500).json({ error: 'Failed to process text with AI' });
     }
-
-    // Process the entities to redact the text
-    let processedText = text;
-    // Loop backwards to not mess up indices after replacement
-    for (let i = entities.length - 1; i >= 0; i--) {
-      const entity = entities[i];
-      const start = entity.start;
-      const end = entity.end;
-      // Replace the found entity with its type (e.g., [PER], [LOC])
-      processedText = processedText.substring(0, start) + `[${entity.entity_group}]` + processedText.substring(end);
-    }
-
-    res.json({ redactedText: processedText });
+    
+    // Process entities in reverse order to maintain correct indices
+    const redactions = nerResults
+      .filter(entity => entities.includes(entity.entity_group))
+      .sort((a, b) => b.start - a.start);
+    
+    redactions.forEach(entity => {
+      const entityType = entity.entity_group;
+      stats.entityCounts[entityType]++;
+      stats.totalRedactions++;
+      
+      processedText = 
+        processedText.substring(0, entity.start) + 
+        `[${entityType}]` + 
+        processedText.substring(entity.end);
+    });
+    
+    // Calculate processing time
+    stats.timeTaken = Date.now() - startTime;
+    
+    res.json({ 
+      redactedText: processedText,
+      stats
+    });
+    
   } catch (error) {
     console.error('Server Error:', error);
-    res.status(500).json({ error: 'An error occurred on the server.' });
+    res.status(500).json({ error: 'An error occurred on the server' });
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
